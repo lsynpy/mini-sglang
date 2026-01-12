@@ -30,3 +30,6 @@ env/
 
 # .vscode
 .vscode/
+
+# coverage data
+.coverage

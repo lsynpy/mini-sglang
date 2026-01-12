@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import torch
 import multiprocessing as mp
-from transformers import AutoTokenizer
 
+import torch
+from minisgl.core import SamplingParams
 from minisgl.distributed import DistributedInfo
 from minisgl.message import BaseBackendMsg, BaseTokenizerMsg, DetokenizeMsg, ExitMsg, UserMsg
 from minisgl.scheduler import Scheduler, SchedulerConfig
 from minisgl.utils import ZmqPullQueue, ZmqPushQueue, call_if_main, init_logger
-from minisgl.core import SamplingParams
+from transformers import AutoTokenizer
 
 logger = init_logger(__name__)
 
@@ -23,10 +23,12 @@ def scheduler(config: SchedulerConfig, queue: mp.Queue) -> None:
         logger.info_rank0("Scheduler exiting...")
 
 
+MODEL_PATH = "Qwen/Qwen3-0.6B"
+
 @call_if_main(__name__)
 def main():
     config = SchedulerConfig(
-        model_path="meta-llama/Llama-3.1-8B-Instruct",
+        model_path=MODEL_PATH,
         tp_info=DistributedInfo(0, 1),
         dtype=torch.bfloat16,
         max_running_req=4,
@@ -51,7 +53,7 @@ def main():
         decoder=BaseTokenizerMsg.decoder,
     )
 
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
     prompt = "What's the answer to life, the universe, and everything?"
     ids = tokenizer.encode(prompt, return_tensors="pt").view(-1).to(torch.int32)
     send_backend.put(

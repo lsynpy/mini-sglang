@@ -75,6 +75,29 @@ class RadixTreeNode:
 
         return new_node
 
+    def visualize(self, indent=0):
+        """Visualize this node and its subtree"""
+        # Safely get node properties that might not be initialized yet
+        node_length = (
+            getattr(self, "_length", 0)
+            if hasattr(self, "_length") and self._length is not None
+            else 0
+        )
+        node_key = getattr(self, "_key", None)
+        node_value = getattr(self, "_value", None)
+
+        print("  " * indent + f"Node UUID: {self.uuid}, Length: {node_length}")
+        print("  " * indent + f"  Key: {node_key.tolist() if node_key is not None else 'N/A'}")
+        print(
+            "  " * indent + f"  Value: {node_value.tolist() if node_value is not None else 'N/A'}"
+        )
+        print("  " * indent + f"  Ref Count: {self.ref_count}")
+        print("  " * indent + f"  Timestamp: {self.timestamp}")
+
+        for token_id, child_node in self.children.items():
+            print("  " * indent + f"  Edge: token_id={token_id} ->")
+            child_node.visualize(indent + 2)
+
     def __lt__(self, other: RadixTreeNode) -> bool:
         return self.timestamp < other.timestamp
 
@@ -166,9 +189,9 @@ class RadixCacheManager(BaseCacheManager):
     def evict(self, size: int) -> torch.Tensor:
         if size == 0:
             return self.empty_tensor
-        assert (
-            size <= self.evictable_size
-        ), f"Cannot evict {size}, only {self.evictable_size} is evictable"
+        assert size <= self.evictable_size, (
+            f"Cannot evict {size}, only {self.evictable_size} is evictable"
+        )
 
         leave_nodes = self._collect_leave_nodes_for_evict()
         heapq.heapify(leave_nodes)
@@ -176,9 +199,9 @@ class RadixCacheManager(BaseCacheManager):
         evicted_size = 0
 
         while evicted_size < size:
-            assert (
-                leave_nodes
-            ), f"Cannot evict enough cache, need {size}, only {evicted_size} evicted"
+            assert leave_nodes, (
+                f"Cannot evict enough cache, need {size}, only {evicted_size} evicted"
+            )
             node = heapq.heappop(leave_nodes)
             assert node.ref_count == 0 and node.is_leaf() and not node.is_root()
             evicted_size += node.length
@@ -216,6 +239,12 @@ class RadixCacheManager(BaseCacheManager):
             evictable_size=self.evictable_size,
             protected_size=self.protected_size,
         )
+
+    def visualize(self) -> None:
+        """Visualize the entire radix tree starting from the root node"""
+        print("Radix Tree Visualization:")
+        print("========================")
+        self.root_node.visualize()
 
     def check_integrity(self) -> None:
         pass

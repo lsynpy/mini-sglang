@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import List
 
-from minisgl.core import SamplingParams
 import torch
+from minisgl.core import SamplingParams
 from minisgl.message import BatchBackendMsg, UserMsg
-from minisgl.message.utils import serialize_type, deserialize_type
+from minisgl.message.utils import deserialize_type, serialize_type
 from minisgl.utils import call_if_main, init_logger
 
 logger = init_logger(__name__)
@@ -21,7 +22,6 @@ class A:
 
 @call_if_main()
 def test_serialize_deserialize():
-
     t = torch.tensor([1, 2, 3], dtype=torch.int32)
     x = A(10, "hello", [A(20, "world", [], t)], t)
     data = serialize_type(x)
