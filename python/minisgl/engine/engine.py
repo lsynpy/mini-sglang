@@ -133,11 +133,13 @@ class Engine:
 
     def _load_weight_state_dict(self, config: EngineConfig) -> Dict[str, torch.Tensor]:
         if config.use_dummy_weight:
+            logger.info("Using dummy weight")
             return {
                 k: torch.randn_like(v, device=self.device)
                 for k, v in self.model.state_dict().items()
             }
         else:
+            logger.info("Loading weight from %s", config.model_path)
             return {
                 k: v.to(self.dtype)
                 for k, v in load_hf_weight(config.model_path, self.device).items()
@@ -161,7 +163,10 @@ class Engine:
 
         assert num_pages > 1, "Not enough memory for KV cache, try reducing --num-tokens"
         real_kv_size = num_pages * cache_per_page
-        logger.info(f"Allocating {num_pages} pages for KV cache, K + V = {mem_GB(real_kv_size)}")
+        logger.info(
+            f"Allocating {num_pages} pages for KV cache, K + V = {mem_GB(real_kv_size)}"
+            f", page_size = {config.page_size}, model_size = {mem_GB(model_memory)}"
+        )
         return num_pages
 
     def _sync_get_memory(self) -> Tuple[int, int]:

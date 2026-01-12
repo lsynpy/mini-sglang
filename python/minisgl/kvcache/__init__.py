@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from minisgl.utils import Registry
+from minisgl.utils import Registry, init_logger
 
 if TYPE_CHECKING:
     import torch
@@ -15,6 +15,8 @@ from .base import (
     KVCacheLayout,
     SizeInfo,
 )
+
+logger = init_logger(__name__)
 
 
 class CacheManagerCreator(Protocol):
@@ -33,6 +35,14 @@ def create_kvcache(
 ) -> BaseKVCache:
     from .mha_pool import MHAKVCache  # TODO: support other variants (e.g. MLA)
 
+    shape_desc = (
+        f"shape: [2, {model_config.num_layers}(#layers), {num_pages}(#pages)"
+        f", {model_config.num_kv_heads}(#heads), {model_config.head_dim}(#head_dim)]"
+        if cache_layout == KVCacheLayout.LayerFirst
+        else f"shape: [2, {num_pages}(#pages), {model_config.num_layers}(#layers)"
+        f", {model_config.num_kv_heads}(#heads), {model_config.head_dim}(#head_dim)]"
+    )
+    logger.info(f"Creating {MHAKVCache.__name__} KV cache with {cache_layout}, {shape_desc}")
     return MHAKVCache(
         num_kv_heads=model_config.num_kv_heads,
         num_pages=num_pages,

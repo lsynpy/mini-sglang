@@ -60,7 +60,8 @@ class Req:
 
     def __repr__(self) -> str:
         return (
-            f"{type(self)}(table_idx={self.table_idx}, "
+            f"Req-{self.uid}(input_ids={self.input_ids.tolist()}, "
+            f"table_idx={self.table_idx}, "
             f"cached_len={self.cached_len}, device_len={self.device_len}, "
             f"max_device_len={self.max_device_len})"
         )

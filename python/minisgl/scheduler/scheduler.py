@@ -90,6 +90,8 @@ class Scheduler(SchedulerIOMixin):
             next_token = int(next_token_id.item())
             finished = not req.can_decode()
             if not req.sampling_params.ignore_eos:
+                if next_token == self.eos_token_id:
+                    logger.debug_rank0("EOS token %d encountered for req %s, marking as finished", next_token, req.uid)
                 finished |= next_token == self.eos_token_id
             reply.append(DetokenizeMsg(uid=req.uid, next_token=next_token, finished=finished))
 
@@ -97,7 +99,7 @@ class Scheduler(SchedulerIOMixin):
             if finished:
                 self.finished_reqs.add(req)
                 self.decode_manager.remove_req(req)
-                logger.debug_rank0("Request %s is finished", req)
+                logger.debug_rank0("%s is finished", req)
 
         # free resources for finished but not ongoing reqs
         ongoing_reqs = ongoing_data[0].batch.reqs if ongoing_data else []

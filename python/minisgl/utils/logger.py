@@ -110,6 +110,9 @@ def init_logger(
         tp_info = tp_info or get_tp_info()
         assert tp_info is not None, "TP info not set yet"
         if tp_info.is_primary():
+            # Use stacklevel=3 to account for the wrapper function call stack
+            # This ensures the log record shows the original caller's file and line
+            kwargs.setdefault("stacklevel", 3)
             getattr(logger, _which)(msg, *args, **kwargs)
 
     if TYPE_CHECKING:
@@ -124,6 +127,27 @@ def init_logger(
 
         return WrapperLogger(name)
     else:
+        # For regular logger methods, we need to ensure they also use the correct stack level
+        # Create wrapper methods that add stacklevel to ensure correct caller info
+        original_info = logger.info
+        original_debug = logger.debug
+        original_warning = logger.warning
+        original_error = logger.error
+        original_critical = logger.critical
+
+        def wrap_log_method(original_method):
+            def wrapper(*args, **kwargs):
+                kwargs.setdefault("stacklevel", 2)
+                return original_method(*args, **kwargs)
+
+            return wrapper
+
+        logger.info = wrap_log_method(original_info)
+        logger.debug = wrap_log_method(original_debug)
+        logger.warning = wrap_log_method(original_warning)
+        logger.error = wrap_log_method(original_error)
+        logger.critical = wrap_log_method(original_critical)
+
         logger.info_rank0 = partial(_call_rank0, _which="info")
         logger.debug_rank0 = partial(_call_rank0, _which="debug")
         logger.critical_rank0 = partial(_call_rank0, _which="critical")

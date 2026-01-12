@@ -14,10 +14,10 @@ def main():
 
     sampling_params = SamplingParams(temperature=0.0, max_tokens=8)
     prompts = [
-        "List the first ten prime numbers:",
+        # "List the first ten prime numbers:",
         "The capital of France is",
-        "Once upon a time in a land far, far away,",
-        "List 10 numbers only contains digit 1:",
+        # "Once upon a time in a land far, far away,",
+        # "List 10 numbers only contains digit 1:",
     ]
 
     # Generate completions for the prompts
@@ -25,7 +25,7 @@ def main():
 
     for prompt, output in zip(prompts, outputs):
         logger.info("Prompt: %r", prompt)
-        logger.info("Completion: %s", output["text"])
+        logger.info("Completion: %s <%s>", output["text"], output["token_ids"])
 
 
 if __name__ == "__main__":
