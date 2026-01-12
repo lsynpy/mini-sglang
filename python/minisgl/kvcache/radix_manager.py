@@ -6,8 +6,11 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import torch
+from minisgl.utils import init_logger
 
 from .base import BaseCacheHandle, BaseCacheManager, SizeInfo
+
+logger = init_logger(__name__)
 
 
 class RadixTreeNode:
@@ -140,14 +143,21 @@ class RadixCacheManager(BaseCacheManager):
         node, prefix_len = self._walk(input_ids)
         if prefix_len == 0:
             assert node.is_root() and node is self.root_node and prefix_len == 0
+            logger.debug(f"match_prefix: no match for input_ids {input_ids.tolist()}, prefix_len=0")
             return RadixCacheHandle(prefix_len, node), self.empty_tensor
+
         value_list: List[torch.Tensor] = []
         matched_node = node
         while not node.is_root():
             value_list.append(node.value)
             node = node.parent
         value_list.reverse()
-        return RadixCacheHandle(prefix_len, matched_node), torch.cat(value_list)
+
+        result_tensor = torch.cat(value_list)
+        logger.debug(
+            f"match_prefix: matched {prefix_len} tokens for input_ids {input_ids.tolist()}, returned indices: {result_tensor.tolist()}"
+        )
+        return RadixCacheHandle(prefix_len, matched_node), result_tensor
 
     def insert_prefix(self, input_ids: torch.Tensor, indices: torch.Tensor) -> int:
         node, prefix_len = self._walk(input_ids)
@@ -157,6 +167,9 @@ class RadixCacheManager(BaseCacheManager):
             new_node.set_key_value(input_ids[prefix_len:], indices[prefix_len:].clone())
             new_node.set_parent(node)
             self.evictable_size += new_node.length
+            logger.debug(
+                f"insert_prefix: inserted new node with key={input_ids[prefix_len:].tolist()}, value={indices[prefix_len:].tolist()}"
+            )
         return prefix_len
 
     def _walk(self, input_ids: torch.Tensor) -> Tuple[RadixTreeNode, int]:

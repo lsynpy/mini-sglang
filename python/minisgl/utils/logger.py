@@ -56,9 +56,9 @@ def init_logger(
         COLORS = {
             "DEBUG": "\033[36m",  # Cyan
             "INFO": "\033[32m",  # Green
-            "WARNING": "\033[33m",  # Yellow
+            "WARN": "\033[33m",  # Yellow
             "ERROR": "\033[31m",  # Red
-            "CRITICAL": "\033[35m",  # Magenta
+            "CRIT": "\033[35m",  # Magenta
         }
         RESET = "\033[0m"
         BOLD = "\033[1m"
@@ -67,11 +67,11 @@ def init_logger(
             from minisgl.distributed import try_get_tp_info
 
             # Format timestamp like SGLang: [YYYY-MM-DD|HH:MM:SS|pid=1234]
-            timestamp = self.formatTime(record, "[%Y-%m-%d|%H:%M:%S{suffix}]")
+            timestamp = self.formatTime(record, "%H:%M:%S{suffix}")
             nonlocal tp_info
             tp_info = tp_info or try_get_tp_info()
-            if tp_info is not None and use_tp_rank is not False:
-                real_suffix = f"{suffix}|core|rank={tp_info.rank}"
+            if tp_info is not None and use_tp_rank is not False and tp_info.size > 1:
+                real_suffix = f"{suffix}|rank={tp_info.rank}"
             else:
                 real_suffix = suffix
             timestamp = timestamp.format(suffix=real_suffix)
@@ -80,11 +80,14 @@ def init_logger(
             level_color = self.COLORS.get(record.levelname, "")
 
             # Format the message
-            colored_level = f"{level_color}{record.levelname:<8}{self.RESET}"
+            colored_level = f"{level_color}{record.levelname:<5}{self.RESET}"
             message = record.getMessage()
 
+            # file info
+            file_info = f"[{record.filename}:{record.lineno}]"
+
             # Pretty format: [timestamp] LEVEL message
-            return f"{self.BOLD}{timestamp}{self.RESET} {colored_level} {message}"
+            return f"{timestamp} {colored_level} {self.BOLD}{file_info}{self.RESET} {message}"
 
     logger = logging.getLogger(name)
     logger.setLevel(_LOG_LEVEL)
