@@ -40,6 +40,7 @@ class PrefillAdder:
             return None
 
         handle, match_indices = self.cache_manager.match_req(req)
+        logger.debug("cache manager match_req result:\n  %s, \n  %s", handle, match_indices)
         cached_len = handle.cached_len
         # TODO: better estimate policy
         extend_len = req.input_len - cached_len
