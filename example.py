@@ -12,7 +12,14 @@ OUTPUT_LEN = 3
 
 
 def main():
-    llm = LLM("Qwen/Qwen3-0.6B", max_running_req=4, memory_ratio=0.3, disable_cuda_graph=True)
+    llm = LLM(
+        "Qwen/Qwen3-0.6B",
+        max_running_req=4,
+        max_seq_len_override=128,
+        memory_ratio=0.3,
+        disable_cuda_graph=True,
+        max_extend_tokens=3,  # enable chunked prefill
+    )
 
     sampling_params = SamplingParams(temperature=0.0, max_tokens=OUTPUT_LEN)
     prompts = [

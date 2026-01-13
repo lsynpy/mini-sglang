@@ -106,7 +106,7 @@ class Scheduler(SchedulerIOMixin):
             if finished:
                 self.finished_reqs.add(req)
                 self.decode_manager.remove_req(req)
-                logger.debug_rank0("%s is finished", req)
+                logger.debug("%s is finished", req)
 
         # free resources for finished but not ongoing reqs
         ongoing_reqs = ongoing_data[0].batch.reqs if ongoing_data else []
@@ -262,8 +262,8 @@ class Scheduler(SchedulerIOMixin):
                 self.engine.stream.wait_stream(self.stream)
                 ongoing_data = (forward_input, self._forward(forward_input))
 
-        logger.debug(f"last_data: {last_data}")
-        logger.debug(f"ongoing_data: {ongoing_data}")
+        logger.debug(f"Forward input: {ongoing_data[0] if ongoing_data else None}")
+        logger.debug(f"Forward output: {ongoing_data[1] if ongoing_data else None}")
         self._process_last_data(last_data, ongoing_data)
         logger.debug("<-" * 50)
         return ongoing_data

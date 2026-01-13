@@ -70,6 +70,7 @@ class Engine:
             (config.max_running_req + 1, self.max_seq_len),
             device=self.device,
         )
+        logger.info(f"Created page table: {list(self.page_table.shape)}")
         self.attn_backend = create_attention_backend(
             config.attention_backend,
             config.model_config,

@@ -27,7 +27,7 @@ class RadixTreeNode:
         # these fields should be updated later
         self._key: torch.Tensor
         self._value: torch.Tensor
-        self._length: int = 0
+        self._length: int
 
     def set_key_value(self, key: torch.Tensor, value: torch.Tensor) -> None:
         assert len(key) == len(value)
@@ -105,7 +105,15 @@ class RadixTreeNode:
         return self.timestamp < other.timestamp
 
     def __repr__(self) -> str:
-        return f"RadixTreeNode(uuid={self.uuid}, root={self.is_root()}, length={self.length}, ref_count={self.ref_count})"
+        key_repr = getattr(self, "_key", None)
+        key_str = f"{key_repr.tolist()}" if key_repr is not None else "None"
+        value_repr = getattr(self, "_value", None)
+        value_str = f"{value_repr.tolist()}" if value_repr is not None else "None"
+        length_val = getattr(self, "_length", 0)
+        return (
+            f"RadixTreeNode(uuid={self.uuid}, root={self.is_root()}, length={length_val}"
+            f", ref_count={self.ref_count}, key={key_str}, value={value_str})"
+        )
 
 
 @dataclass(frozen=True)
@@ -170,9 +178,7 @@ class RadixCacheManager(BaseCacheManager):
             new_node.set_key_value(input_ids[prefix_len:], indices[prefix_len:].clone())
             new_node.set_parent(node)
             self.evictable_size += new_node.length
-            logger.debug(
-                f"insert_prefix: inserted new node with key={input_ids[prefix_len:].tolist()}, value={indices[prefix_len:].tolist()}"
-            )
+            logger.debug(f"Inserted new node: {new_node}")
         return prefix_len
 
     def _walk(self, input_ids: torch.Tensor) -> Tuple[RadixTreeNode, int]:

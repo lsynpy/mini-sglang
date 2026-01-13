@@ -59,7 +59,7 @@ class Req:
         return self.remain_len > 0
 
     def __repr__(self) -> str:
-        return f"\nReq-{self.uid}{self.input_ids.tolist()}"
+        return f"Req-{self.uid}{self.input_ids.tolist()}"
 
 
 @dataclass
