@@ -21,6 +21,7 @@ class EngineConfig:
     attention_backend: str = "auto"
     cuda_graph_bs: List[int] | None = None
     cuda_graph_max_bs: int | None = None
+    disable_cuda_graph: bool = False
     page_size: int = 1
     memory_ratio: float = 0.9
     distributed_timeout: float = 60.0

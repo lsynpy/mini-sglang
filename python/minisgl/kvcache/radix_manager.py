@@ -27,7 +27,7 @@ class RadixTreeNode:
         # these fields should be updated later
         self._key: torch.Tensor
         self._value: torch.Tensor
-        self._length: int
+        self._length: int = 0
 
     def set_key_value(self, key: torch.Tensor, value: torch.Tensor) -> None:
         assert len(key) == len(value)
@@ -103,6 +103,9 @@ class RadixTreeNode:
 
     def __lt__(self, other: RadixTreeNode) -> bool:
         return self.timestamp < other.timestamp
+
+    def __repr__(self) -> str:
+        return f"RadixTreeNode(uuid={self.uuid}, root={self.is_root()}, length={self.length}, ref_count={self.ref_count})"
 
 
 @dataclass(frozen=True)

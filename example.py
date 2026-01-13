@@ -8,11 +8,13 @@ from minisgl.utils.logger import init_logger
 
 logger = init_logger(__name__)
 
+OUTPUT_LEN = 3
+
 
 def main():
-    llm = LLM("Qwen/Qwen3-0.6B", max_running_req=4, memory_ratio=0.3)
+    llm = LLM("Qwen/Qwen3-0.6B", max_running_req=4, memory_ratio=0.3, disable_cuda_graph=True)
 
-    sampling_params = SamplingParams(temperature=0.0, max_tokens=8)
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=OUTPUT_LEN)
     prompts = [
         # "List the first ten prime numbers:",
         "The capital of France is",

@@ -59,12 +59,7 @@ class Req:
         return self.remain_len > 0
 
     def __repr__(self) -> str:
-        return (
-            f"Req-{self.uid}(input_ids={self.input_ids.tolist()}, "
-            f"table_idx={self.table_idx}, "
-            f"cached_len={self.cached_len}, device_len={self.device_len}, "
-            f"max_device_len={self.max_device_len})"
-        )
+        return f"\nReq-{self.uid}{self.input_ids.tolist()}"
 
 
 @dataclass
@@ -93,6 +88,9 @@ class Batch:
     @property
     def padded_size(self) -> int:
         return len(self.padded_reqs)
+
+    def __repr__(self) -> str:
+        return f"Batch(reqs={self.reqs}, phase={self.phase}, input_ids={self.input_ids.tolist()}"
 
 
 @dataclass

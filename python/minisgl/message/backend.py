@@ -34,3 +34,6 @@ class UserMsg(BaseBackendMsg):
     uid: int
     input_ids: torch.Tensor  # CPU 1D int32 tensor
     sampling_params: SamplingParams
+
+    def __repr__(self) -> str:
+        return f"UserMsg(uid={self.uid}, input_ids={self.input_ids.tolist()})"

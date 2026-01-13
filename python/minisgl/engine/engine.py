@@ -24,6 +24,9 @@ class ForwardOutput(NamedTuple):
     next_tokens_cpu: torch.Tensor
     copy_done_event: torch.cuda.Event
 
+    def __repr__(self) -> str:
+        return f"ForwardOutput(next_tokens={self.next_tokens_cpu.tolist()}"
+
 
 def create_page_table(shape: Tuple[int, int], device: torch.device) -> torch.Tensor:
     return torch.zeros(shape, dtype=torch.int32, device=device)
@@ -102,6 +105,7 @@ class Engine:
             max_seq_len=self.max_seq_len,
             vocab_size=self.model_config.vocab_size,
             dummy_req=self.dummy_req,
+            disable_cuda_graph=config.disable_cuda_graph,
         )
 
     def _init_communication(self, config: EngineConfig) -> torch.distributed.ProcessGroup:

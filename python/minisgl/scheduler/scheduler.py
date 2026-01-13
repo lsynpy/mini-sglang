@@ -37,6 +37,9 @@ class ForwardInput(NamedTuple):
     load_indices: torch.Tensor
     write_indices: torch.Tensor
 
+    def __repr__(self) -> str:
+        return f"ForwardInput(batch={self.batch}, load_indice={self.load_indices.tolist()}, write_indice={self.write_indices.tolist()})"
+
 
 ForwardData: TypeAlias = "Tuple[ForwardInput, ForwardOutput]"
 
@@ -91,7 +94,11 @@ class Scheduler(SchedulerIOMixin):
             finished = not req.can_decode()
             if not req.sampling_params.ignore_eos:
                 if next_token == self.eos_token_id:
-                    logger.debug_rank0("EOS token %d encountered for req %s, marking as finished", next_token, req.uid)
+                    logger.debug_rank0(
+                        "EOS token %d encountered for req %s, marking as finished",
+                        next_token,
+                        req.uid,
+                    )
                 finished |= next_token == self.eos_token_id
             reply.append(DetokenizeMsg(uid=req.uid, next_token=next_token, finished=finished))
 
@@ -239,6 +246,7 @@ class Scheduler(SchedulerIOMixin):
         It will overlap the execution of current batch and processing of last batch's results,
         which can effectively hide CPU latency and improve GPU utilization.
         """
+        logger.debug("->" * 50)
         blocking = not (
             last_data  # don't block if we have a batch to be processed
             or self.prefill_manager.runnable
@@ -254,7 +262,10 @@ class Scheduler(SchedulerIOMixin):
                 self.engine.stream.wait_stream(self.stream)
                 ongoing_data = (forward_input, self._forward(forward_input))
 
+        logger.debug(f"last_data: {last_data}")
+        logger.debug(f"ongoing_data: {ongoing_data}")
         self._process_last_data(last_data, ongoing_data)
+        logger.debug("<-" * 50)
         return ongoing_data
 
     def normal_loop(self) -> None:
